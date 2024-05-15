@@ -1,10 +1,16 @@
 /**
  * @jest-environment jsdom
  */
-import {act,renderHook} from "@testing-library/react"
-import { describe,expect,it } from "vitest"
-
+import {act,renderHook, waitFor} from "@testing-library/react"
+import { describe,expect,it, test, vi } from "vitest"
+import {instance} from './../utils/mockAxios'
 import { useAxios } from "../hooks/useFetch"
+import axios, { AxiosError } from "axios"
+import MockAdapter from 'axios-mock-adapter';
+import { json } from "stream/consumers"
+import sinon from 'sinon';
+import { ACTIONS } from "../actions/fetch"
+
 
 
 describe("useAxios",()=>{
@@ -24,13 +30,18 @@ describe("useAxios",()=>{
         })
         expect(result.current.data).toBe("")
     })
-    it("should fetch in useEfect",()=>{
-        const {result,rerender}=renderHook(()=>useAxios({method:"get",url:"https://rickandmortyapi.com/api/character",enabled:true})) 
+    var mock = new MockAdapter(axios);
+    it("fetches sucefuly data from apì",async()=>{
+        const mockData = {foo:"bar"}
+        mock.onGet("/users").reply(200,mockData)
+
+        const {result }= renderHook(()=> useAxios({method:"get",url:"https://rickandmortyapi.com/api/character",enabled:true}))
         expect(result.current.data).toBe("")
-        act(()=>{
+        expect(result.current.loading).toBe(false)
+        await waitFor(()=>{
             result.current.fetcher
         })
-        rerender() 
         expect(result.current.data).toBe("")
     })
+    
 })
